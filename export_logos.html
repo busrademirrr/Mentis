@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Logoları PNG Olarak İndir</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #0F172A; color: #F8FAFC; }
+        .btn { padding: 12px 24px; background-color: #8B5CF6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; }
+        .btn:hover { background-color: #A78BFA; }
+    </style>
+</head>
+<body>
+    <h2>Mentis Logoları Hazır</h2>
+    <p>Aşağıdaki butonlara tıklayarak logoları yüksek çözünürlüklü (1024x1024) PNG olarak indirebilirsiniz.</p>
+    
+    <button class="btn" onclick="downloadLogo('mentis')">Mentis Ana Logoyu İndir (PNG)</button>
+    <button class="btn" onclick="downloadLogo('brand')">Mentis Sembol Logoyu İndir (PNG)</button>
+
+    <script>
+        const mentisSvg = `<svg width="1024" height="1024" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad" x1="0" y1="0" x2="100" y2="100">
+                    <stop offset="0" stop-color="#8B5CF6" stop-opacity="1" />
+                    <stop offset="1" stop-color="#A78BFA" stop-opacity="0.8" />
+                </linearGradient>
+            </defs>
+            <path d="M50 5 L90 27.5 L90 72.5 L50 95 L10 72.5 L10 27.5 Z" stroke="url(#grad)" stroke-width="6" stroke-linejoin="round" fill="none" />
+            <path d="M50 5 L50 50 M10 27.5 L50 50 M90 27.5 L50 50 M50 95 L50 50 M10 72.5 L50 50 M90 72.5 L50 50" stroke="url(#grad)" stroke-width="3" stroke-linecap="round" stroke-opacity="0.4" />
+            <circle cx="50" cy="5" r="4" fill="url(#grad)" />
+            <circle cx="90" cy="27.5" r="4" fill="url(#grad)" />
+            <circle cx="90" cy="72.5" r="4" fill="url(#grad)" />
+            <circle cx="50" cy="95" r="4" fill="url(#grad)" />
+            <circle cx="10" cy="72.5" r="4" fill="url(#grad)" />
+            <circle cx="10" cy="27.5" r="4" fill="url(#grad)" />
+            <circle cx="50" cy="50" r="6" fill="url(#grad)" />
+        </svg>`;
+
+        const brandSvg = `<svg width="1024" height="1024" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 L85 30 L85 70 L50 90 L15 70 L15 30 Z" stroke="#8B5CF6" stroke-width="6" stroke-linejoin="round" fill="none" opacity="0.3" />
+            <path d="M25 65 L25 35 L50 55 L75 35 L75 65" stroke="#8B5CF6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            <circle cx="25" cy="35" r="5" fill="#7C3AED" />
+            <circle cx="50" cy="55" r="5" fill="#7C3AED" />
+            <circle cx="75" cy="35" r="5" fill="#7C3AED" />
+            <circle cx="25" cy="65" r="5" fill="#7C3AED" />
+            <circle cx="75" cy="65" r="5" fill="#7C3AED" />
+            <circle cx="50" cy="10" r="5" fill="#7C3AED" opacity="0.5" />
+            <circle cx="50" cy="90" r="5" fill="#7C3AED" opacity="0.5" />
+        </svg>`;
+
+        function downloadLogo(type) {
+            const svgStr = type === 'mentis' ? mentisSvg : brandSvg;
+            const filename = type === 'mentis' ? 'MentisLogo.png' : 'MentisBrandLogo.png';
+            
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024;
+                canvas.height = 1024;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const a = document.createElement('a');
+                a.download = filename;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgStr);
+        }
+    </script>
+</body>
+</html>

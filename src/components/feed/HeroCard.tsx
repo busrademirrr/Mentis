@@ -1,0 +1,326 @@
+import React, { useState } from 'react';
+import { View, StyleSheet, Image, Platform, Pressable, LayoutAnimation, UIManager } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import { colors, spacing, radius, typography } from '../../theme';
+import { Text, Icon } from '../ui';
+import { Post } from '../../types/database.types';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+interface HeroCardProps {
+    post: Post;
+    onToggleLike: () => void;
+    onToggleSave: () => void;
+}
+
+export const HeroCard = ({ post, onToggleLike, onToggleSave }: HeroCardProps) => {
+    const navigation = useNavigation<any>();
+    const { payload } = post;
+    
+    const [isHovered, setIsHovered] = useState(false);
+    const [isLikeHovered, setIsLikeHovered] = useState(false);
+    const [isCommentHovered, setIsCommentHovered] = useState(false);
+    const [isSaveHovered, setIsSaveHovered] = useState(false);
+    const [isShareHovered, setIsShareHovered] = useState(false);
+    
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const likesCount = typeof post.likes === 'number' ? post.likes : 0;
+    const commentsCount = typeof post.comments === 'number' ? post.comments : 0;
+    
+    const imageUrl = payload?.image_url || post.image_url || 'https://images.unsplash.com/photo-1549463234-7299a91dc9a1?w=800';
+    const hasImage = !!imageUrl;
+    const infoBoxText = payload?.info_box_text || "Dalí, sürrealist eserlerinde bilinçaltını Freud'un psikanaliz teorilerinden etkilenerek yorumlamıştır."; // Added dummy for matching UI if not present
+
+    const formatNumber = (num: number) => num > 1000 ? `${(num / 1000).toFixed(1)}K` : num.toString();
+
+    const toggleExpand = (e: any) => {
+        e.stopPropagation();
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsExpanded(!isExpanded);
+    };
+
+    const handleShare = async (e: any) => {
+        e.stopPropagation();
+        if (Platform.OS === 'web' && navigator.share) {
+            try {
+                await navigator.share({
+                    title: post.title,
+                    text: post.short_description || '',
+                    url: `${window.location.origin}/post/${post.id}`
+                });
+            } catch (err) {
+                Toast.show({ type: 'info', text1: 'Bağlantı kopyalandı!' });
+            }
+        } else {
+            Toast.show({ type: 'info', text1: 'Bağlantı kopyalandı!' });
+        }
+    };
+
+    return (
+        <View 
+            // @ts-ignore
+            onHoverIn={() => setIsHovered(true)}
+            onHoverOut={() => setIsHovered(false)}
+            style={[
+                styles.container, 
+                isHovered && styles.containerHovered
+            ]}
+        >
+            <Pressable onPress={() => navigation.navigate('Comments', { postId: post.id })}>
+                {hasImage && (
+                    <View style={styles.imageContainer}>
+                        <Image source={{ uri: imageUrl }} style={styles.image} />
+                        {post.category && (
+                            <View style={styles.categoryBadge}>
+                                <Text variant="caption" weight="bold" color="surface">{post.category}</Text>
+                            </View>
+                        )}
+                        <View style={styles.moreOptionsBadge}>
+                            <Icon name="more-horizontal" size={16} color="surface" />
+                        </View>
+                    </View>
+                )}
+
+                <View style={styles.contentWrapper}>
+                    <Text variant="h1" weight="bold" color="textPrimary" style={styles.title} numberOfLines={2}>
+                        {post.title}
+                    </Text>
+                    
+                    {(post.short_description || payload?.description) ? (
+                        <Text variant="body" color="textSecondary" weight="medium" style={styles.subtitle} numberOfLines={2}>
+                            {post.short_description || payload?.description}
+                        </Text>
+                    ) : null}
+
+                    {/* Expandable Content Preview */}
+                    <View style={styles.previewContainer}>
+                        <Text 
+                            variant="body" 
+                            color="textPrimary" 
+                            style={styles.contentText} 
+                            numberOfLines={isExpanded ? undefined : 7}
+                        >
+                            {post.content || "Roma İmparatorluğu, artan ekonomik krizler, siyasi istikrarsızlık, barbar istilaları ve iç savaşlar nedeniyle zayıflamaya başladı. İmparatorluğun doğu ve batı olarak ikiye ayrılması, yönetimi kolaylaştırmayı amaçlasa da, Batı Roma'nın askeri ve ekonomik açıdan çökmesini engelleyemedi..."}
+                        </Text>
+                    </View>
+                    
+                    <Pressable onPress={toggleExpand} style={styles.readMoreBtn}>
+                        <Text variant="label" weight="bold" color="primary">
+                            {isExpanded ? "Daha az göster ∧" : "Devamını oku ∨"}
+                        </Text>
+                    </Pressable>
+
+                    {/* Compact "Did You Know" Capsule */}
+                    {infoBoxText && (
+                        <View style={styles.didYouKnowContainer}>
+                            <View style={styles.didYouKnowHeader}>
+                                <Icon name="zap" size={14} color="#f59e0b" />
+                                <Text variant="caption" weight="bold" color="textPrimary" style={styles.didYouKnowTitle}>
+                                    Biliyor muydunuz?
+                                </Text>
+                            </View>
+                            <Text variant="caption" color="textSecondary" style={styles.didYouKnowText} numberOfLines={2}>
+                                {infoBoxText}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Modern Social Action Bar */}
+                    <View style={styles.actionBar}>
+                        <View style={styles.actionLeft}>
+                            <Pressable 
+                                // @ts-ignore
+                                onHoverIn={() => setIsLikeHovered(true)} onHoverOut={() => setIsLikeHovered(false)}
+                                style={[styles.actionBtn, isLikeHovered && styles.actionBtnHover]} 
+                                onPress={(e) => { e.stopPropagation(); onToggleLike(); }}
+                            >
+                                <Icon name="heart" size={20} color={post.user_has_liked ? "#ef4444" : (isLikeHovered ? "#ef4444" : colors.textSecondary)} />
+                                <Text variant="label" weight="medium" color={post.user_has_liked ? "#ef4444" : (isLikeHovered ? "#ef4444" : "textSecondary")} style={styles.actionText}>
+                                    {formatNumber(likesCount)}
+                                </Text>
+                            </Pressable>
+
+                            <Pressable 
+                                // @ts-ignore
+                                onHoverIn={() => setIsCommentHovered(true)} onHoverOut={() => setIsCommentHovered(false)}
+                                style={[styles.actionBtn, isCommentHovered && styles.actionBtnHover]} 
+                                onPress={(e) => { e.stopPropagation(); navigation.navigate('Comments', { postId: post.id }); }}
+                            >
+                                <Icon name="message-circle" size={20} color={isCommentHovered ? colors.primary : colors.textSecondary} />
+                                <Text variant="label" weight="medium" color={isCommentHovered ? "primary" : "textSecondary"} style={styles.actionText}>
+                                    {formatNumber(commentsCount)}
+                                </Text>
+                            </Pressable>
+                        </View>
+
+                        <View style={styles.actionRight}>
+                            <Pressable 
+                                // @ts-ignore
+                                onHoverIn={() => setIsSaveHovered(true)} onHoverOut={() => setIsSaveHovered(false)}
+                                style={[styles.actionBtn, isSaveHovered && styles.actionBtnHover]} 
+                                onPress={(e) => { e.stopPropagation(); onToggleSave(); }}
+                            >
+                                <Icon name="bookmark" size={20} color={post.user_has_saved ? "#8b5cf6" : (isSaveHovered ? "#8b5cf6" : colors.textSecondary)} />
+                                <Text variant="label" weight="medium" color={post.user_has_saved ? "#8b5cf6" : (isSaveHovered ? "#8b5cf6" : "textSecondary")} style={styles.actionText}>
+                                    Kaydet
+                                </Text>
+                            </Pressable>
+
+                            <Pressable 
+                                // @ts-ignore
+                                onHoverIn={() => setIsShareHovered(true)} onHoverOut={() => setIsShareHovered(false)}
+                                style={[styles.actionBtn, isShareHovered && styles.actionBtnHover]} 
+                                onPress={handleShare}
+                            >
+                                <Icon name="share-2" size={20} color={isShareHovered ? colors.textPrimary : colors.textSecondary} />
+                                <Text variant="label" weight="medium" color={isShareHovered ? "textPrimary" : "textSecondary"} style={styles.actionText}>
+                                    Paylaş
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Pressable>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: colors.borderHighlight,
+        marginBottom: spacing.xl,
+        overflow: 'hidden',
+        maxWidth: 820,
+        width: '100%',
+        ...Platform.select({
+            web: { transition: 'box-shadow 0.2s ease, border-color 0.2s ease' } as any,
+        }),
+    },
+    containerHovered: {
+        borderColor: 'rgba(139, 92, 246, 0.2)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+    } as any,
+    imageContainer: {
+        width: '100%',
+        height: 140, // Drastically reduced
+        position: 'relative',
+        backgroundColor: colors.background,
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    categoryBadge: {
+        position: 'absolute',
+        top: spacing.sm,
+        left: spacing.sm,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: radius.pill,
+    },
+    moreOptionsBadge: {
+        position: 'absolute',
+        top: spacing.sm,
+        right: spacing.sm,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        padding: 4,
+        borderRadius: radius.circle,
+    },
+    contentWrapper: {
+        padding: spacing.xl,
+        paddingTop: spacing.lg,
+    },
+    title: {
+        fontSize: 30, // Reduced from 32
+        lineHeight: 36,
+        marginBottom: 6,
+        letterSpacing: -0.5,
+    },
+    subtitle: {
+        fontSize: typography.sizes.md, // Reduced from lg
+        lineHeight: 24,
+        color: '#6b7280',
+        marginBottom: spacing.lg,
+    },
+    previewContainer: {
+        marginBottom: spacing.xs,
+    },
+    contentText: {
+        fontSize: 16,
+        lineHeight: 26,
+        color: '#4b5563',
+    },
+    readMoreBtn: {
+        marginTop: spacing.sm,
+        marginBottom: spacing.lg,
+        alignSelf: 'flex-start',
+    },
+    didYouKnowContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8fafc', // Very subtle slate
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 8,
+        marginBottom: spacing.xl,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    didYouKnowHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    didYouKnowTitle: {
+        marginLeft: 4,
+        fontSize: 12, // Tiny text
+    },
+    didYouKnowText: {
+        flex: 1,
+        fontSize: 13,
+        lineHeight: 18,
+    },
+    actionBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: spacing.lg,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderHighlight,
+    },
+    actionLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.lg,
+    },
+    actionRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+    },
+    actionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        borderRadius: radius.md,
+        backgroundColor: 'transparent',
+        ...Platform.select({ web: { transition: 'background-color 0.2s ease', cursor: 'pointer' } as any }),
+    },
+    actionBtnHover: {
+        backgroundColor: colors.background,
+    },
+    actionText: {
+        marginLeft: 8,
+        fontSize: 15,
+    }
+});
