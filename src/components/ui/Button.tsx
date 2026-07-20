@@ -120,7 +120,7 @@ export const Button: React.FC<ButtonProps> = ({
                 style={[
                     styles.base,
                     dynamicContainer,
-                    !isGradient && dynamicSize, // Gradient handles its own padding to fill
+                    dynamicSize,
                     (disabled || isLoading) && { opacity: 0.6 },
                     fullWidth && { width: '100%' },
                     style as any,
@@ -132,7 +132,7 @@ export const Button: React.FC<ButtonProps> = ({
                         colors={colors.gradients.premium as any}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={[StyleSheet.absoluteFill, dynamicSize, { borderRadius: dynamicSize.borderRadius, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }]}
+                        style={[StyleSheet.absoluteFill, { borderRadius: dynamicSize.borderRadius, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }]}
                     >
                         <Content />
                     </LinearGradient>

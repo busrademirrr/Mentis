@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions, Animated, Easing } from 'react-native';
+import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions, Animated, Easing, TouchableOpacity } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Toast from 'react-native-toast-message';
@@ -190,15 +190,13 @@ export const LoginScreen = ({ navigation }: any) => {
                             <View style={styles.divider} />
                         </View>
 
-                        <View 
+                        <TouchableOpacity 
                             style={styles.googleButton} 
-                            // @ts-ignore
-                            onStartShouldSetResponder={() => true}
-                            onResponderRelease={handleGoogleLogin}
+                            onPress={handleGoogleLogin}
                         >
                             <AntDesign name="google" size={20} color={colors.textPrimary} />
                             <Text variant="body" weight="bold" color="textPrimary" style={{ marginLeft: spacing.sm }}>Google ile Devam Et</Text>
-                        </View>
+                        </TouchableOpacity>
 
                         <View style={styles.footer}>
                             <Text variant="body" color="textSecondary">Hesabın yok mu? </Text>
